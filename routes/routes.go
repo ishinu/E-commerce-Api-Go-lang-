@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/ishinu/controllers"
 	"github.com/gin-gonic/gin"
+	"github.com/ishinu/controllers"
 )
 
 func userRoutes(incomingRoutes *gin.Engine) {
