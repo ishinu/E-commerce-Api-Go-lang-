@@ -23,7 +23,7 @@ type SignedDetails struct {
 }
 
 var UserData *mongo.Collection = database.UserData(database.Client, "Users")
-var SECRET_KEY = os.Getenv("SECRET_KEY")
+var SECRET_KEY = os.Getenv("SECRET_LOVE")
 
 func TokenGenerator(email string, firstname string, lastname string, uid string) (signedtoken string, signedfreshtoken string, err error) {
 	claims := &SignedDetails{
@@ -44,7 +44,7 @@ func TokenGenerator(email string, firstname string, lastname string, uid string)
 	if err != nil {
 		return "", "", err
 	}
-	refreshtoken, err := jwt.NewWithClaims(jwt.SigningMethodHS384, refreshclaims).SignedString([]byte(SECRET_KEY))
+	refreshtoken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshclaims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
 		log.Panic(err)
 		return
@@ -65,18 +65,18 @@ func ValidateToken(signedtoken string) (claims *SignedDetails, msg string) {
 		msg = "the token is invalid "
 		return
 	}
-	if claims.StandardClaims.ExpiresAt < time.Now().Local().Unix() {
+	if claims.ExpiresAt < time.Now().Local().Unix() {
 		msg = "token is already expired"
 		return
 	}
 	return claims, msg
 }
 
-func UpdateAllTokens(signedtoken string, signedfreshtoken string, userid string) {
+func UpdateAllTokens(signedtoken string, signedrefreshtoken string, userid string) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	var updateobj primitive.D
 	updateobj = append(updateobj, bson.E{Key: "token", Value: signedtoken})
-	updateobj = append(updateobj, bson.E{Key: "refresh_token", Value: signedfreshtoken})
+	updateobj = append(updateobj, bson.E{Key: "refresh_token", Value: signedrefreshtoken})
 	updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	updateobj = append(updateobj, bson.E{Key: "updatedat", Value: updated_at})
 	upsert := true
